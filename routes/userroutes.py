@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from datetime import datetime
+from app.auth import hash_password, verify_password
 from schema.userschema import UserResponse, UserCreate, UserSchema
 from schema.authschema import LoginRequest, TokenResponse
 from app.database import engine
@@ -29,12 +30,11 @@ async def read_user(user_id: int):
 
 @app_user.post("/auth/register", response_model=UserResponse)
 async def create_user(user: UserCreate):
-    return {
-        "id": 1,
-        "name": user.name,
-        "email": user.email,
-        "created_at": datetime.utcnow()
-    }
+    email = user.email
+    password_hashed = hash_password(user.password)
+
+
+
 
 @app_user.post("/auth/login", response_model=TokenResponse)
 async def login_user(data: LoginRequest):
