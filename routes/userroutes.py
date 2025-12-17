@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from datetime import datetime
-from app.auth import hash_password, verify_password
-from app.security import create_access_token
+from app.auth import hash_password, verify_password, verify_user
+from app.security import create_access_token, verify_access_token, get_current_user, oauth2_scheme
 from schema.userschema import UserResponse, UserCreate, UserSchema
-from schema.authschema import LoginRequest, TokenResponse
+from schema.authschema import LoginRequest, TokenResponse, TokenRequest
 from app.database import engine, get_db
 from models.usermodels import User
 from fastapi import HTTPException
@@ -12,24 +12,31 @@ from sqlalchemy.orm import Session
 app_user = APIRouter(prefix="/users", tags=["Users"])
 
 @app_user.get("/me", response_model=UserSchema)
-async def read_user_me():
-    return {
-        "id": 1,
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "password": "securepassword",
-        "created_at": "2024-01-01T00:00:00Z"
-    }
+async def read_user_me(    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+
+    payload = verify_access_token(token.token)
+    user_id: str = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return user
+
+
+
 
 @app_user.get("/{user_id}", response_model=UserSchema)
-async def read_user(user_id: int):
-    return {
-        "id": user_id,
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "password": "securepassword",
-        "created_at": "2024-01-01T00:00:00Z "
-    }
+async def read_user(user_id: int, db: Session = Depends(get_db), token: TokenRequest = None):
+    if token:
+        payload = verify_access_token(token.token)
+        if not payload:
+            raise HTTPException(status_code=401, detail="Token inválido ou expirado")   
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return user
+
 
 
 @app_user.post("/auth/register", response_model=UserResponse)
@@ -37,8 +44,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 
-    existing_user = db.query(User).filter(User.email == user.email).first()
-    if existing_user:
+    if verify_user(user.email, db):
         raise HTTPException(status_code=400, detail="Email já cadastrado")
 
     new_user = User(

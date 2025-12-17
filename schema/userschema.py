@@ -9,6 +9,11 @@ class UserCreate(BaseModel):
     password: str
 
 
+class UserResponsePublic(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    created_at: datetime
 class UserResponse(BaseModel):
     id: int
     name: str
