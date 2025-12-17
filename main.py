@@ -1,6 +1,7 @@
 
 from fastapi import FastAPI
-
+from models.usermodels import User
+from models.taskmodels import Task
 from app.database import engine
 from app.database import Base
 from routes.userroutes import app_user
