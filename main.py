@@ -1,18 +1,17 @@
 
 from fastapi import FastAPI
-from models.usermodels import User
-from models.taskmodels import Task
-from app.database import engine
-from app.database import Base
-from routes.userroutes import app_user
-from routes.tasksroutes import app_tasks
+from app.users import models as user_models
+from app.sales import models as sales_models
+from app.inventory import models as inventory_models
+from app.reports import models as reports_models
+from app.products import models as product_models
+from app.database.database import engine
+from app.database.database import Base
 
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Main API")
-app.include_router(app_user)
-app.include_router(app_tasks)
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Main API"}

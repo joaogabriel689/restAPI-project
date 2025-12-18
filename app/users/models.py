@@ -1,3 +1,16 @@
+"""id (PK)
+name
+email
+password_hash
+role                -- admin / vendedor
+is_active
+created_at
+"""
+
+
+
+
+
 from app.database import Base
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
@@ -10,5 +23,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
+    role = Column(String, nullable=False)
+    is_active = Column(Integer, default=1)  # 1 for active, 0 for inactive
     created_at = Column(DateTime, default=datetime.utcnow)
     

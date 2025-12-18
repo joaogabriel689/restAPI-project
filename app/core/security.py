@@ -3,7 +3,7 @@ from jose.exceptions import JWTError
 from datetime import datetime, timedelta    
 from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
-from app.config import SECRET_KEY, ALGORITHM
+from app.core.config import SECRET_KEY, ALGORITHM
 from fastapi.security import OAuth2PasswordBearer
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/auth/login")
