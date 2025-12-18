@@ -1,6 +1,6 @@
 import hashlib
 
-from models.usermodels import User
+from app.users.models import User
 
 def hash_password(password: str) -> str:
     password_bytes = password.encode('utf-8')
