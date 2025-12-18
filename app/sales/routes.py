@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+'''from fastapi import APIRouter, Depends, HTTPException, status
 from app.sales.models import Sale
 from app.sales.schemas import SaleCreate, SaleResponse
 
@@ -55,3 +55,6 @@ async def read_sales_by_user(user_id: int):
 async def read_sale_item(sale_item_id: int):
     # Logic to read a sale item by ID
     return Sale(id=1, item_id=sale_item_id, quantity=2, total_price=100.0)
+Docstring for app.sales.routes
+'''
+

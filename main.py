@@ -9,14 +9,14 @@ from app.reports import models as report_models
 from app.tributation import models as tributation_models
 from app.sales import models as sales_models
 
-from app.cash_register.routes import app_cash_register
+
 from app.inventory.routes import app_inventory
 from app.reports.routes import app_reports
-from app.sales.routes import app_sales
+#from app.sales.routes import app_sales
 from app.users.routes import app_users
-from app.companies.routes import app_companies
+
 from app.products.routes import app_products
-from app.tributation.routes import app_tributation
+
 
 
 
@@ -29,5 +29,8 @@ async def root():
     return {"message": "Welcome to the Main API"}
 
 
-
-
+app.include_router(app_inventory)
+app.include_router(app_reports) 
+#app.include_router(app_sales)
+app.include_router(app_users)
+app.include_router(app_products)
