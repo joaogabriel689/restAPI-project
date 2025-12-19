@@ -9,10 +9,17 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed_password: str) -> bool:
     password_hash = hash_password(password)
-    return password_hash == hashed_password
+    if hashed_password == password_hash:
+        return True
+    return False
 
 def verify_user(email: str, db) -> bool:
     user = db.query(User).filter(User.email == email).first()
     if not user:
         return False
     return True
+
+def get_user_by_email(email, db):
+    result = db.query(User).filter(User.email == email).first()
+    print("DEBUG get_user_by_email:", type(result))
+    return result
