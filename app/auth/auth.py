@@ -21,5 +21,4 @@ def verify_user(email: str, db) -> bool:
 
 def get_user_by_email(email, db):
     result = db.query(User).filter(User.email == email).first()
-    print("DEBUG get_user_by_email:", type(result))
     return result

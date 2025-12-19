@@ -11,6 +11,23 @@ from app.users.schemas import UserResponse, UserCreate
 
 app_users = APIRouter(prefix="/users", tags=["users"])
 
+
+@app_users.get("/me", response_model=UserResponse)
+async def get_current_user(
+    payload=Depends(get_current_payload),
+    db=Depends(get_db)
+):
+    user = get_user_by_email(payload.get("email"), db=db)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+
+    return user
+
+
 @app_users.get("/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
     user = get_user_by_email(payload.get("email"), db=db)
@@ -26,22 +43,8 @@ async def list_users(db=Depends(get_db)):
     users = db.query(User).all()
     return users
 
-@app_users.get("/me", response_model=UserResponse)
-async def get_current_user(payload=Depends(get_current_payload), db=Depends(get_db)):
-    user = get_user_by_email(payload.get("email"), db=db)
-    return user
 
-@app_users.post("/")
-async def create_user(user:UserCreate,payload=Depends(get_current_payload), db=Depends(get_db)):
-    if payload.get("role") != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Operation not permitted."
-        )
-    db.add(User(name=user.name, email=user.email, password=user.password, role=user.role))
-    db.commit()
 
-    return {"message": "user created successfully"}
 
 
 @app_users.put("/{user_id}")
@@ -62,14 +65,14 @@ async def update_user(user_id: int, user: UserCreate, payload=Depends(get_curren
 
 @app_users.delete("/{user_id}")
 async def delete_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
-    if payload.get("role") != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Operation not permitted."
-        )
-    db.query(User).filter(User.id == user_id).delete()
-    db.commit()
-    return {"message": f"Delete user with ID {user_id}"}
+    if payload.get("role") == "admin" or str(payload.get("sub")) == str(user_id):
+        db.query(User).filter(User.id == user_id).delete()
+        db.commit()
+        return {"message": f"Delete user with ID {user_id}"}
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Operation not permitted."
+    )
 
 @app_users.post("/{user_id}/activate")
 async def activate_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
@@ -84,11 +87,11 @@ async def activate_user(user_id: int, payload=Depends(get_current_payload), db=D
 
 @app_users.post("/{user_id}/deactivate")
 async def deactivate_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
-    if str(payload.get("sub")) != str(user_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Operation not permitted."
-        )
-    db.query(User).filter(User.id == user_id).update({User.is_active: False})
-    db.commit()
-    return {"message": f"Deactivate user with ID {user_id}"}
+    if str(payload.get("sub")) == str(user_id) or payload.get("role") == "admin":
+        db.query(User).filter(User.id == user_id).update({User.is_active: False})
+        db.commit()
+        return {"message": f"Deactivate user with ID {user_id}"}        
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Operation not permitted."
+    )
