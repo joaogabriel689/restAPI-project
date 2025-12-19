@@ -1,10 +1,23 @@
+import token
 from fastapi import APIRouter, Depends, HTTPException, status
+from app.database.database import get_db
+from app.auth.auth import verify_user, get_user_by_email
+from app.auth.schemas import LoginRequest, TokenResponse, TokenRequest
+from app.core.security import verify_access_token
+from app.depends.depends import get_current_payload
+
 
 app_users = APIRouter(prefix="/users", tags=["users"])
 
 @app_users.get("/{user_id}")
-async def get_user(user_id: int):
-    return {"message": f"Get user with ID {user_id}"}
+async def get_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
+    user = get_user_by_email(payload.get("email"), db=db)
+    if user is None or str(user.id) != str(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+    return {"user_id": user.id, "name": user.name, "email": user.email, "role": user.role}
  
 @app_users.get("/")
 async def list_users():
