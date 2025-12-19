@@ -14,7 +14,7 @@ from app.inventory.routes import app_inventory
 from app.reports.routes import app_reports
 #from app.sales.routes import app_sales
 from app.users.routes import app_users
-
+from app.auth.routes import app_auth
 from app.products.routes import app_products
 
 
@@ -23,7 +23,7 @@ from app.products.routes import app_products
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Main API")
+app = FastAPI(title="API pdv")
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Main API"}
@@ -34,3 +34,4 @@ app.include_router(app_reports)
 #app.include_router(app_sales)
 app.include_router(app_users)
 app.include_router(app_products)
+app.include_router(app_auth)
