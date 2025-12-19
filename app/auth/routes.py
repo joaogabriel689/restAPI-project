@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.users.schemas import UserCreate
 from app.users.models import User
 from app.auth.auth import verify_user, get_user_by_email
-from app.auth.schemas import LoginRequest
+from app.auth.schemas import LoginRequest, TokenResponse, TokenRequest
+from app.auth.models import BlackListToken
 from app.database.database import get_db
 from app.auth.auth import hash_password, verify_password
 from app.core.security import create_access_token
@@ -56,10 +57,14 @@ async def register(user: UserCreate, db=Depends(get_db)):
         db.refresh(dict_user)
         return {"message": "user registered successfully"}
 
-@app_auth.post("/refresh-token")
-async def refresh_token():
-    return {"message": "Refresh token endpoint"}
+# @app_auth.post("/refresh-token")
+# async def refresh_token(token: TokenRequest, db=Depends(get_db)):
+
+#     return {"message": "Refresh token endpoint"}
 
 @app_auth.post("/logout")
-async def logout():
+async def logout(token: TokenRequest, db=Depends(get_db)):
+    blacklisted_token = BlackListToken(token=token.token)
+    db.add(blacklisted_token)
+    db.commit()
     return {"message": "Logout endpoint"}
