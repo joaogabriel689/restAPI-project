@@ -16,7 +16,7 @@ async def login(login_data: LoginRequest, db=Depends(get_db)):
     email = login_data.email
     password_request = login_data.password
     user = get_user_by_email(email, db=db)  
-    if (user is None) or (verify_password(password_request, user.password) == False):
+    if (user is None) or (verify_password(password_request, user.password) == False) or (user.is_active == False):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password."

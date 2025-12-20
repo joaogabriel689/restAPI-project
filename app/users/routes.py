@@ -39,7 +39,12 @@ async def get_user(user_id: int, payload=Depends(get_current_payload), db=Depend
     return user
  
 @app_users.get("/", response_model=list[UserResponse])
-async def list_users(db=Depends(get_db)):
+async def list_users(payload=Depends(get_current_payload), db=Depends(get_db)):
+    if payload.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operation not permitted."
+        )
     users = db.query(User).all()
     return users
 
@@ -57,7 +62,6 @@ async def update_user(user_id: int, user: UserCreate, payload=Depends(get_curren
     db.query(User).filter(User.id == user_id).update({
         User.name: user.name,
         User.email: user.email,
-        User.password: user.password,
         User.role: user.role
     })
     db.commit() 
