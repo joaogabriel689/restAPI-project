@@ -24,3 +24,15 @@ def require_role(role_verified: str):
             raise HTTPException(status_code=403)
         return user
     return dependency
+
+
+def require_login(user = Depends(get_current_payload)):
+    return user
+
+
+
+def require_admin(user = Depends(get_current_payload)):
+    if user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+    return user
+
