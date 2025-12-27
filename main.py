@@ -8,6 +8,7 @@ from app.products import models as product_models
 from app.reports import models as report_models
 from app.tributation import models as tributation_models
 from app.sales import models as sales_models
+from app.roles import models as role_models
 
 
 from app.inventory.routes import app_inventory

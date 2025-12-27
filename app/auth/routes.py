@@ -11,6 +11,8 @@ from datetime import timedelta
 
 app_auth = APIRouter(prefix="/auth", tags=["auth"])
 
+
+#fazer login
 @app_auth.post("/login")
 async def login(login_data: LoginRequest, db=Depends(get_db)):  
     email = login_data.email
@@ -34,6 +36,8 @@ async def login(login_data: LoginRequest, db=Depends(get_db)):
 
 
 
+
+#registrar ususario
 @app_auth.post("/register")
 async def register(user: UserCreate, db=Depends(get_db)):
     email = user.email
@@ -57,11 +61,9 @@ async def register(user: UserCreate, db=Depends(get_db)):
         db.refresh(dict_user)
         return {"message": "user registered successfully"}
 
-# @app_auth.post("/refresh-token")
-# async def refresh_token(token: TokenRequest, db=Depends(get_db)):
 
-#     return {"message": "Refresh token endpoint"}
 
+#fazer logout
 @app_auth.post("/logout")
 async def logout(token: TokenRequest, db=Depends(get_db)):
     blacklisted_token = BlackListToken(token=token.token)

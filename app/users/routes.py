@@ -12,6 +12,12 @@ from app.users.schemas import UserResponse, UserCreate
 app_users = APIRouter(prefix="/users", tags=["users"])
 
 
+
+
+
+
+
+#obter proprio usuario
 @app_users.get("/me", response_model=UserResponse)
 async def get_current_user(
     payload=Depends(get_current_payload),
@@ -28,6 +34,12 @@ async def get_current_user(
     return user
 
 
+
+
+
+
+
+#obter usuario por id
 @app_users.get("/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
     user = get_user_by_email(payload.get("email"), db=db)
@@ -37,7 +49,15 @@ async def get_user(user_id: int, payload=Depends(get_current_payload), db=Depend
             detail="User not found."
         )
     return user
- 
+
+
+
+
+
+
+
+
+#listar todos os usuarios
 @app_users.get("/", response_model=list[UserResponse])
 async def list_users(payload=Depends(get_current_payload), db=Depends(get_db)):
     if payload.get("role") != "admin":
@@ -52,6 +72,13 @@ async def list_users(payload=Depends(get_current_payload), db=Depends(get_db)):
 
 
 
+
+
+
+
+
+
+#atualizar um usuario
 @app_users.put("/{user_id}")
 async def update_user(user_id: int, user: UserCreate, payload=Depends(get_current_payload), db=Depends(get_db)):
     if payload.get("sub") != str(user_id) :
@@ -67,6 +94,14 @@ async def update_user(user_id: int, user: UserCreate, payload=Depends(get_curren
     db.commit() 
     return {"message": f"Update user with ID {user_id}"}
 
+
+
+
+
+
+
+
+#deletar um usuario
 @app_users.delete("/{user_id}")
 async def delete_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
     if payload.get("role") == "admin" or str(payload.get("sub")) == str(user_id):
@@ -78,6 +113,15 @@ async def delete_user(user_id: int, payload=Depends(get_current_payload), db=Dep
         detail="Operation not permitted."
     )
 
+
+
+
+
+
+
+
+
+#ativar um usuario
 @app_users.post("/{user_id}/activate")
 async def activate_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
     if payload.get("role") != "admin":
@@ -89,6 +133,15 @@ async def activate_user(user_id: int, payload=Depends(get_current_payload), db=D
     db.commit()
     return {"message": f"Activate user with ID {user_id}"}
 
+
+
+
+
+
+
+
+
+#desativar um usuario
 @app_users.post("/{user_id}/deactivate")
 async def deactivate_user(user_id: int, payload=Depends(get_current_payload), db=Depends(get_db)):
     if str(payload.get("sub")) == str(user_id) or payload.get("role") == "admin":
