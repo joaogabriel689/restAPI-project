@@ -8,3 +8,6 @@ class RoleUpdate(BaseModel):
     id: int
     name: str | None = None
     description: str | None = None
+
+class roleAssignPermissions(BaseModel):
+    permission_ids: list[int]

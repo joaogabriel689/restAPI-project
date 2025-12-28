@@ -4,7 +4,7 @@ from app.depends.depends import require_permission, require_admin, verify_role
 from app.roles import models as role_models
 from app.database.database import get_db
 from app.core.security import verify_access_token
-from .schemas import RoleCreate, RoleUpdate
+from .schemas import RoleCreate, RoleUpdate, roleAssignPermissions
 
 
 app_roles = APIRouter(prefix="/roles", tags=["roles"])
@@ -48,13 +48,28 @@ async def update_role(role: RoleUpdate,
 
 
 @app_roles.delete("/{role_id}")
-async def delete_role(role_id: int,token=Depends(verify_access_token),db=Depends(get_db)):    
+async def delete_role(role_id: int,
+            admin=Depends(require_admin),
+            db=Depends(get_db)): 
+
+    if not db.query(role_models.Role).filter(role_models.Role.id == role_id).first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+    db.query(role_models.Role).filter(role_models.Role.id == role_id).delete()
+    db.commit()
+
     return {"message": f"Delete role with ID {role_id}"}
 
 @app_roles.get("/{role_id}/permissions")
-async def get_role_permissions(role_id: int,token=Depends(verify_access_token),db=Depends(get_db)):
-    return {"message": f"Get permissions for role with ID {role_id}"}
+async def get_role_permissions(role_id: int,admin=Depends(require_admin),db=Depends(get_db)):
+    user_roles = db.query(role_models.Role).filter(role_models.Role.id == role_id).first()
+    return {"message": f"Get permissions for role with ID {role_id}",
+            "roles": user_roles.permissions
+            }
 
 @app_roles.post("/{role_id}/permissions")
-async def assign_permissions_to_role(role_id: int,token=Depends(verify_access_token),db=Depends(get_db)):
+async def assign_permissions_to_role(role_id: int,role=roleAssignPermissions,admin=Depends(require_admin),db=Depends(get_db)):
+    for permission_id in role.permission_ids:
+        db.query(role_models.Role).filter(role_models.Role.id == role_id).first().permissions.append(permission_id)
+    db.commit()
+    
     return {"message": f"Assign permissions to role with ID {role_id}"}
