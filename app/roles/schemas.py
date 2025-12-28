@@ -5,9 +5,8 @@ class RoleCreate(BaseModel):
     description: str
 
 class RoleUpdate(BaseModel):
-    id: int
     name: str | None = None
     description: str | None = None
 
-class roleAssignPermissions(BaseModel):
+class RoleAssignPermissions(BaseModel):
     permission_ids: list[int]

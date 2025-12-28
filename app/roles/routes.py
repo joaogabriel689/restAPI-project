@@ -52,21 +52,24 @@ async def update_role(
 
 
 
-
 @app_roles.delete("/{role_id}")
-async def delete_role(role_id: int,
-            admin=Depends(require_admin),
-            db=Depends(get_db)): 
-    #dar atençao
+async def delete_role(
+    role_id: int,
+    admin=Depends(require_admin),
+    db=Depends(get_db)
+):
+    role = db.query(role_models.Role).filter_by(id=role_id).first()
+    if not role:
+        raise HTTPException(404, "Role not found")
+
     if role.name == "admin":
         raise HTTPException(400, "Admin role cannot be deleted")
 
-    if not db.query(role_models.Role).filter(role_models.Role.id == role_id).first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
-    db.query(role_models.Role).filter(role_models.Role.id == role_id).delete()
+    db.delete(role)
     db.commit()
 
-    return {"message": f"Delete role with ID {role_id}"}
+    return {"message": f"Role {role_id} deleted"}
+
 
 
 
@@ -78,11 +81,20 @@ async def delete_role(role_id: int,
 
 #dar atençao as 2 rotas abaixo
 @app_roles.get("/{role_id}/permissions")
-async def get_role_permissions(role_id: int,admin=Depends(require_admin),db=Depends(get_db)):
-    user_roles = db.query(role_models.Role).filter(role_models.Role.id == role_id).first()
-    return {"message": f"Get permissions for role with ID {role_id}",
-            "roles": user_roles.permissions
-            }
+async def get_role_permissions(
+    role_id: int,
+    admin=Depends(require_admin),
+    db=Depends(get_db)
+):
+    role = db.query(role_models.Role).filter_by(id=role_id).first()
+    if not role:
+        raise HTTPException(404, "Role not found")
+
+    return {
+        "role": role.name,
+        "permissions": role.permissions
+    }
+
 
 
 
@@ -93,7 +105,7 @@ async def get_role_permissions(role_id: int,admin=Depends(require_admin),db=Depe
 @app_roles.post("/{role_id}/permissions")
 async def assign_permissions_to_role(
     role_id: int,
-    data: roleAssignPermissions,
+    data: RoleAssignPermissions,
     admin=Depends(require_admin),
     db=Depends(get_db)
 ):
@@ -101,9 +113,14 @@ async def assign_permissions_to_role(
     if not role:
         raise HTTPException(404, "Role not found")
 
-    permissions = db.query(role_models.Permission)\
-        .filter(role_models.Permission.id.in_(data.permission_ids))\
+    permissions = (
+        db.query(role_models.Permission)
+        .filter(role_models.Permission.id.in_(data.permission_ids))
         .all()
+    )
+
+    if len(permissions) != len(data.permission_ids):
+        raise HTTPException(400, "One or more permissions not found")
 
     role.permissions = permissions
     db.commit()
