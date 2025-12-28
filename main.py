@@ -17,6 +17,7 @@ from app.reports.routes import app_reports
 from app.users.routes import app_users
 from app.auth.routes import app_auth
 from app.products.routes import app_products
+from app.roles.routes import app_roles
 
 
 
@@ -36,3 +37,4 @@ app.include_router(app_reports)
 app.include_router(app_users)
 app.include_router(app_products)
 app.include_router(app_auth)
+app.include_router(app_roles)

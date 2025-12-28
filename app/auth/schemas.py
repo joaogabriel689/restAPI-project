@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
 class LoginRequest(BaseModel):
@@ -17,5 +18,13 @@ class TokenData(BaseModel):
     email: EmailStr | None = None
     iat: float | None = None
     roles: list[str] = []
+class TokenJwt(BaseModel):
+    sub: str
+    name: str
+    email: EmailStr
+    iat: Optional[int] = None
+    exp: float
+    role: str | list[str]
+
 class TokenRequest(BaseModel):
-    token: str  
+    token: str

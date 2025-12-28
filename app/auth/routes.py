@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.users.schemas import UserCreate
 from app.users.models import User
 from app.auth.auth import verify_user, get_user_by_email
-from app.auth.schemas import LoginRequest, TokenResponse, TokenRequest
+from app.auth.schemas import LoginRequest, TokenJwt, TokenRequest
 from app.auth.models import BlackListToken
 from app.database.database import get_db
 from app.auth.auth import hash_password, verify_password
 from app.core.security import create_access_token
 from datetime import timedelta
+
 
 app_auth = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -28,7 +29,9 @@ async def login(login_data: LoginRequest, db=Depends(get_db)):
             "sub": str(user.id),
             "name": user.name,
             "email": user.email,
-            "role": user.role
+            "iat": timedelta.utcnow().timestamp(),
+            "role": [user.role]
+            
         }
         deltatime = timedelta(minutes=60)
         access_token = create_access_token(data=dict_user, expires_delta=deltatime)
